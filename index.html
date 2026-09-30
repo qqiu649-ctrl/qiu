@@ -1,0 +1,1017 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fallon Qiu — gRAPHIC dESIGN pORTFOLIO 2026</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>♠️</text></svg>">
+<style>
+  :root{
+    --acid:#dcff2f;
+    --ink:#161616;
+    --red:#d92b2b;
+    --line:#e2e2e6;
+    --os:1;
+  }
+  @media (max-width:1500px){:root{--os:.82}}
+  @media (max-width:1100px){:root{--os:.62}}
+  @media (max-width:800px){:root{--os:.5}}
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:"Helvetica Neue",Helvetica,"PingFang SC","Hiragino Sans GB",Arial,sans-serif;
+    background:#fff;color:var(--ink);overflow:hidden;height:100vh;
+  }
+  ::selection{background:var(--acid)}
+  .disp{font-family:"Helvetica Neue Condensed Black","HelveticaNeue-CondensedBlack",Impact,"Arial Narrow","Helvetica Neue",sans-serif;font-weight:900}
+
+  /* ---------- loader ---------- */
+  #loader{position:fixed;inset:0;background:#fff;z-index:200;display:flex;flex-direction:column;gap:20px;
+    align-items:center;justify-content:center;transition:opacity .5s ease,visibility .5s}
+  #loader.done{opacity:0;visibility:hidden}
+  #loader .card{width:64px;height:90px;border-radius:8px;background:#fff;border:1.5px solid var(--ink);
+    display:flex;align-items:center;justify-content:center;font-size:34px;animation:flip 1.2s ease-in-out infinite}
+  @keyframes flip{0%,100%{transform:rotateY(0) rotate(-6deg)}50%{transform:rotateY(180deg) rotate(6deg)}}
+  #loader .pct{font-size:12px;letter-spacing:.08em;font-weight:700;font-variant-numeric:tabular-nums}
+
+  /* ---------- 3D stage ---------- */
+  .stage{position:fixed;inset:0;overflow:hidden;perspective:1300px;perspective-origin:50% 50%;pointer-events:none}
+  .cloud{position:absolute;inset:0;transform-style:preserve-3d;will-change:transform}
+  .obj{position:absolute;left:50%;top:50%;
+    transform:translate(calc(-50% + var(--dx,0px) + var(--lx,0px)),calc(-50% + var(--dy,0px) + var(--ly,0px)))
+      translate3d(var(--x,0vw),var(--y,0vh),calc(var(--z,0)*1px))
+      rotate(calc(var(--r,0)*1deg)) scale(var(--os,1));
+    pointer-events:auto;cursor:grab;user-select:none;-webkit-user-select:none;touch-action:none;
+    transition:opacity .4s}
+  .obj:active{cursor:grabbing}
+  .obj .float{animation:bob 6s ease-in-out infinite;animation-delay:var(--fd,0s);transition:transform .35s cubic-bezier(.22,1,.36,1)}
+  .obj:hover .float{transform:scale(1.05)}
+  @keyframes bob{0%,100%{translate:0 0}50%{translate:0 -14px}}
+  .obj.far{opacity:.22;filter:saturate(.4)}
+  .obj.logo{cursor:default;pointer-events:none;--os:1}
+
+  /* playing card object */
+  .pcard{width:200px;background:#fff;border:1px solid #d8d8dc;border-radius:14px;padding:9px;
+    box-shadow:0 20px 34px rgba(20,20,30,.18);position:relative;cursor:pointer}
+  .pcard .ph{border-radius:8px;overflow:hidden;aspect-ratio:3/4;background:#eee}
+  .pcard .ph img{width:100%;height:100%;object-fit:cover;display:block;pointer-events:none}
+  .pcard .ix{position:absolute;font-weight:800;font-size:14px;line-height:1.02;text-align:center;
+    background:#fff;padding:2px 3px;border-radius:5px}
+  .pcard .ix small{display:block;font-size:12px}
+  .pcard .ix.tl{top:12px;left:12px}
+  .pcard .ix.br{bottom:12px;right:12px;transform:rotate(180deg)}
+  .pcard .ix.r{color:var(--red)}
+  .pcard.big{width:230px}
+  .pcard.sm{width:170px}
+
+  /* 3D flip card */
+  .cardobj{cursor:grab}
+  .cardobj.dragging{z-index:20;cursor:grabbing}
+  .pcard3d{perspective:1100px;aspect-ratio:1000/1303;position:relative}
+  .pcard3d .inner{position:absolute;inset:0;transform-style:preserve-3d;will-change:transform}
+  .pcard3d .face{position:absolute;inset:0;width:auto;padding:4.5%;
+    backface-visibility:hidden;-webkit-backface-visibility:hidden}
+  .pcard3d .face .ph{width:100%;height:100%;aspect-ratio:auto}
+  .pcard3d .face.back{transform:rotateY(180deg)}
+  .pcard .sheen{position:absolute;inset:0;border-radius:inherit;overflow:hidden;pointer-events:none}
+  .pcard .sheen::after{content:"";position:absolute;inset:-40%;
+    background:linear-gradient(115deg,transparent 40%,rgba(255,255,255,.42) 50%,transparent 60%);
+    transform:translateX(-80%);animation:sheen 7s ease-in-out infinite;animation-delay:var(--sd,0s)}
+  @keyframes sheen{0%,58%{transform:translateX(-80%)}78%,100%{transform:translateX(80%)}}
+  .face .frames{position:relative;width:100%;height:100%}
+  .face .frames img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;
+    animation:fcycle 8s linear infinite}
+  .face .frames img:nth-child(1){animation-delay:0s}
+  .face .frames img:nth-child(2){animation-delay:2s}
+  .face .frames img:nth-child(3){animation-delay:4s}
+  .face .frames img:nth-child(4){animation-delay:6s}
+  @keyframes fcycle{0%{opacity:0}5%{opacity:1}26%{opacity:1}33%{opacity:0}100%{opacity:0}}
+
+  /* casino chip */
+  .chipobj{width:150px;height:150px;border-radius:50%;position:relative;
+    background:
+      radial-gradient(circle,#fff 0 31%,transparent 32%),
+      repeating-conic-gradient(#d92b2b 0 20deg,#fdfdfd 20deg 40deg);
+    box-shadow:0 16px 28px rgba(20,20,30,.22), inset 0 0 0 6px rgba(0,0,0,.06)}
+  .chipobj::after{content:"FQ";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+    font-weight:900;font-size:30px;color:var(--red);letter-spacing:.02em}
+
+  /* die */
+  .die{width:110px;height:110px;border-radius:22px;background:linear-gradient(145deg,#ffffff,#e8e8ec);
+    border:1px solid #d8d8dc;box-shadow:0 16px 26px rgba(20,20,30,.18), inset 0 3px 5px rgba(255,255,255,.9);
+    display:grid;grid-template-columns:repeat(3,1fr);padding:16px;gap:4px}
+  .die i{border-radius:50%}
+  .die i.on{background:#1c1c1f}
+  .die i:nth-child(1).on,.die i:nth-child(9).on{background:var(--red)}
+
+  /* real 3D dice ×3 —— 独立场景物件，与扑克同空间 */
+  .dieCv{width:180px;height:180px;display:block;filter:drop-shadow(0 20px 24px rgba(20,20,30,.30))}
+  /* 骰子画布走 billboard：链路保持 3D，才能精确抵消场景翻滚的透视压缩 */
+  .dieobj,.dieobj .float{transform-style:preserve-3d}
+
+  /* black info disc */
+  .datadisc{width:230px;height:230px;border-radius:50%;background:radial-gradient(circle at 38% 30%,#2b2b2e 0 8%,#0c0c0e 60%,#1c1c1f);
+    display:flex;align-items:center;justify-content:center;
+    box-shadow:inset 0 0 0 1px #333,0 20px 34px rgba(20,20,30,.22)}
+  .datadisc pre{font-family:"SF Mono",Menlo,monospace;font-size:11px;line-height:1.55;color:#f5f5f2;letter-spacing:.12em}
+
+  /* acid jelly */
+  .jelly{width:210px;height:110px;border-radius:60% 55% 58% 62%/70% 66% 62% 70%;
+    background:radial-gradient(ellipse at 35% 30%,#f4ff9c,#d8f527 55%,#a7c900);
+    display:flex;align-items:center;justify-content:center;
+    box-shadow:inset 0 -14px 22px rgba(90,110,0,.5),inset 0 10px 16px rgba(255,255,255,.75),0 18px 30px rgba(140,170,0,.35)}
+  .jelly span{font-weight:900;font-size:36px;letter-spacing:.04em;color:#eaff70;font-style:italic;
+    text-shadow:0 2px 0 #93ad00,0 -2px 2px #fbffd0,0 6px 12px rgba(90,110,0,.45)}
+
+  /* ghost suit glyphs (far) */
+  .suitglyph{font-size:340px;line-height:1;color:#111}
+
+  /* center wordmark — 固定图层，不随场景翻滚 */
+  .wordmark-fixed{position:fixed;left:50%;top:50%;transform:translate(-50%,-54%);
+    text-align:center;pointer-events:none;z-index:0}
+  .wordmark-fixed h1{font-size:min(13vw,170px);letter-spacing:-.01em;line-height:.92;color:#2e2e31;
+    text-shadow:0 3px 0 #fff,0 14px 30px rgba(20,20,30,.18)}
+  .wordmark-fixed p{margin-top:14px;font-weight:700;font-size:min(2vw,15px);letter-spacing:.34em;color:#7a7a80}
+
+  /* ---------- UI overlay ---------- */
+  .ui{position:fixed;z-index:40;transition:opacity .4s ease}
+  .ui.hidden-by-scroll{opacity:0;pointer-events:none!important}
+  .chip{display:inline-flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--ink);
+    border-radius:999px;padding:7px 14px;font-size:12.5px;font-weight:600;color:var(--ink);
+    text-decoration:none;cursor:pointer;white-space:nowrap}
+  .chip:hover{background:var(--acid)}
+  .chip .tag{background:var(--ink);color:#fff;font-size:10px;padding:3px 8px;border-radius:999px;font-weight:600}
+
+  .pillnav{left:50%;top:50%;transform:translate(-50%,-50%);display:flex;align-items:center;z-index:75;transition:top .55s cubic-bezier(.22,1,.36,1)}
+  .pillnav.docked{top:44px}
+  .pillnav .brand{display:flex;align-items:center;height:44px;box-sizing:border-box;
+    background:#fff;border:1.5px solid var(--ink);border-right:none;border-radius:999px 0 0 999px;
+    padding:0 16px 0 20px;font-weight:800;font-size:15px;letter-spacing:.01em;text-decoration:none;color:var(--ink)}
+  .pillnav .brand em{font-style:normal;color:var(--red)}
+  .pillnav .menu{display:flex;align-items:center;height:44px;box-sizing:border-box;gap:9px;
+    background:var(--acid);border:1.5px solid var(--ink);
+    border-radius:0 999px 999px 0;padding:0 18px 0 14px;font-weight:700;font-size:15px;cursor:pointer}
+  .pillnav .menu:hover{filter:brightness(1.05)}
+  .pillnav .faces{display:flex;align-items:center;gap:4px;font-size:14px}
+  .pillnav .faces .rd{color:var(--red)}
+  .pillnav .faces b{font-size:12px}
+  .pillnav .dots{display:inline-flex;flex-direction:column;gap:2.5px;margin-left:2px}
+  .pillnav .dots i{width:3.5px;height:3.5px;border-radius:50%;background:var(--ink)}
+
+  #menuPanel{position:fixed;left:50%;top:calc(50% + 34px);transform:translate(-50%,8px);z-index:59;
+    background:#fff;border:1.5px solid var(--ink);border-radius:22px;padding:14px 8px;min-width:240px;
+    display:flex;flex-direction:column;opacity:0;visibility:hidden;transition:.25s ease}
+  #menuPanel.open{opacity:1;visibility:visible;transform:translate(-50%,16px)}
+  #menuPanel a{padding:9px 20px;border-radius:12px;text-decoration:none;color:var(--ink);
+    font-weight:700;font-size:17px;display:flex;justify-content:space-between;align-items:center;gap:30px}
+  #menuPanel a small{font-weight:500;font-size:11px;color:#999}
+  #menuPanel a:hover{background:var(--acid)}
+
+  .tl{left:26px;top:24px;max-width:280px}
+  .tl h2{font-size:14px;line-height:1.55;font-weight:600;margin-bottom:12px}
+  .tr{right:26px;top:24px;display:flex;flex-direction:column;gap:8px;align-items:flex-end}
+  .lm{left:26px;top:50%;transform:translateY(-50%);font-family:"SF Mono",Menlo,monospace;
+    font-size:10.5px;letter-spacing:.06em;color:#666;display:flex;flex-direction:column;gap:6px}
+  .lm b{color:var(--ink);font-weight:700}
+  .lm .soon{margin-top:10px;background:var(--ink);color:#fff;padding:4px 9px;border-radius:6px;width:max-content;font-size:9.5px}
+  .rm{right:26px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;align-items:center;gap:16px}
+  .rm .playstick{width:96px;height:96px;cursor:pointer;animation:slowspin 14s linear infinite;filter:drop-shadow(0 10px 16px rgba(140,170,0,.4))}
+  @keyframes slowspin{to{transform:rotate(360deg)}}
+  .bl{left:26px;bottom:26px;background:#fff;border:1.5px solid var(--ink);border-radius:18px;
+    padding:12px 16px;min-width:210px;cursor:pointer}
+  .bl .dotsrow{display:flex;gap:5px;margin-bottom:9px}
+  .bl .dotsrow i{width:5px;height:5px;border-radius:50%;background:#ccc}
+  .bl .dotsrow i.on{background:var(--ink)}
+  .bl h3{font-size:15px;font-weight:800;letter-spacing:-.01em}
+  .bl small{font-size:10px;color:#999;font-weight:600;letter-spacing:.08em}
+  .bc{left:50%;bottom:26px;transform:translateX(-50%);display:flex;gap:7px;align-items:center}
+  .bc button{width:34px;height:34px;border-radius:50%;border:1.5px solid var(--ink);background:#fff;font-weight:700;font-size:13px;cursor:pointer}
+  .bc button:hover,.bc button.on{background:var(--acid)}
+  .bc .more{width:auto;border-radius:999px;padding:0 14px;height:34px}
+  .br-ui{right:26px;bottom:26px;display:flex;align-items:center;gap:12px;background:none;border:none;cursor:pointer}
+  .br-ui .wordbtn{font-size:44px;font-weight:900;font-style:italic;letter-spacing:-.05em;color:var(--ink)}
+  .br-ui .arrow{width:44px;height:44px;border-radius:50%;border:1.5px solid var(--ink);background:#fff;
+    display:flex;align-items:center;justify-content:center;font-size:19px;transition:.25s}
+  .br-ui:hover .arrow{background:var(--acid);transform:translateY(4px)}
+
+  /* ---------- second-level page (overlay sheet) ---------- */
+  .scroll-space{display:none}
+  #sheet{position:fixed;inset:0;z-index:70;background:#fff;overflow-y:auto;
+    border-radius:38px 38px 0 0;box-shadow:0 -22px 60px rgba(20,20,30,.14);
+    transform:translateY(103%);transition:transform .65s cubic-bezier(.22,1,.36,1);
+    visibility:hidden}
+  #sheet.open{transform:none;border-radius:0;visibility:visible}
+  #work{padding:120px 4vw 30px}
+  #work .head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:36px;flex-wrap:wrap;gap:10px}
+  #work .head h2{font-size:clamp(52px,9vw,120px);letter-spacing:-.02em;line-height:.9;color:#242427}
+  #work .head span{font-family:"SF Mono",Menlo,monospace;font-size:12px;color:#888}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(235px,1fr));gap:30px 22px}
+  .wcard{background:#fff;border:1px solid var(--line);border-radius:16px;padding:10px;cursor:pointer;
+    position:relative;transition:transform .35s cubic-bezier(.22,1,.36,1),box-shadow .35s}
+  .wcard:hover{transform:translateY(-8px) rotate(-.6deg);box-shadow:0 26px 40px rgba(20,20,30,.14)}
+  .wcard .ph{border-radius:10px;overflow:hidden;aspect-ratio:3/4;background:#f2f2f3}
+  .wcard .ph img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .5s}
+  .wcard:hover .ph img{transform:scale(1.05)}
+  .wcard .ix{position:absolute;top:16px;left:16px;background:#fff;border-radius:6px;padding:3px 5px;
+    font-weight:800;font-size:13px;line-height:1;text-align:center}
+  .wcard .ix small{display:block;font-size:11px}
+  .wcard .ix.r{color:var(--red)}
+  .wcard .meta{display:flex;justify-content:space-between;align-items:flex-end;padding:11px 4px 4px;gap:8px}
+  .wcard .meta h3{font-size:15.5px;font-weight:800;line-height:1.3}
+  .wcard .meta h3 i{display:block;font-style:normal;font-size:11px;color:#999;font-weight:600;letter-spacing:.05em;margin-top:3px}
+  .wcard:hover .meta h3{background:var(--acid)}
+  .wcard .meta small{font-family:"SF Mono",Menlo,monospace;font-size:10px;color:#999;white-space:nowrap}
+
+  /* about */
+  #about{border-top:1px solid var(--line);padding:70px 4vw;background:#fafafa}
+  #about .head h2{font-size:clamp(40px,6.5vw,90px);letter-spacing:-.02em;color:#242427;margin-bottom:44px}
+  .abgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:34px 40px}
+  .abcol h4{font-size:13px;font-weight:800;letter-spacing:.14em;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+  .abcol h4 b{color:var(--red)}
+  .abcol p,.abcol li{font-size:13.5px;line-height:1.85;color:#3a3a3e}
+  .abcol ul{list-style:none}
+  .abcol li{display:flex;justify-content:space-between;gap:14px;border-bottom:1px dashed #ddd;padding:7px 0}
+  .abcol li span{color:#999;font-family:"SF Mono",Menlo,monospace;font-size:11px;white-space:nowrap;padding-top:3px}
+  .abcol .tools{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+  .abcol .tools i{font-style:normal;font-size:11.5px;font-weight:600;border:1px solid #ddd;background:#fff;
+    border-radius:999px;padding:4px 10px}
+
+  /* contact footer */
+  #contact{background:#141416;color:#fff;padding:80px 4vw 40px;border-radius:38px 38px 0 0;margin-top:60px}
+  #contact h2{font-size:clamp(46px,8vw,110px);line-height:.95;letter-spacing:-.02em}
+  #contact h2 em{font-style:normal;color:var(--acid)}
+  #contact .row{display:flex;flex-wrap:wrap;gap:12px;margin:36px 0 60px}
+  #contact .chip{background:#141416;color:#fff;border-color:#4a4a4e}
+  #contact .chip:hover{background:var(--acid);color:var(--ink)}
+  #contact .chip .tag{background:#fff;color:var(--ink)}
+  #contact .foot{display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;
+    border-top:1px solid #333;padding-top:22px;font-size:11px;color:#8a8a90}
+
+  /* ---------- project viewer ---------- */
+  #viewer{position:fixed;inset:0;z-index:90;background:#fff;display:flex;flex-direction:column;
+    opacity:0;visibility:hidden;transform:translateY(4vh);transition:.35s cubic-bezier(.22,1,.36,1)}
+  #viewer.open{opacity:1;visibility:visible;transform:none}
+  #viewer .vtop{display:flex;align-items:center;gap:16px;padding:16px 4vw;border-bottom:1px solid var(--line);background:#fff}
+  #viewer .vtop .vix{font-weight:800;font-size:15px;line-height:1;text-align:center;border:1px solid var(--line);border-radius:8px;padding:6px 8px}
+  #viewer .vtop .vix small{display:block;font-size:12px}
+  #viewer .vtop .vix.r{color:var(--red)}
+  #viewer .vtop h3{font-size:18px;font-weight:800}
+  #viewer .vtop h3 i{display:block;font-style:normal;font-size:11px;letter-spacing:.06em;color:#999;margin-top:2px}
+  #viewer .vtop .sp{flex:1}
+  #viewer .vbody{flex:1;overflow-y:auto;padding:34px 4vw 60px}
+  #viewer .vdesc{max-width:760px;font-size:14px;line-height:2;color:#333;margin-bottom:34px}
+  #viewer .vimgs{display:flex;flex-direction:column;gap:14px;max-width:1500px;margin:0 auto}
+  #viewer .vimgs img{width:100%;border-radius:12px;border:1px solid var(--line);display:block;background:#f4f4f5}
+  #viewer .vvideo{width:100%;margin:0;border-radius:12px;border:1px solid var(--line);overflow:hidden;background:#080808;display:flex;justify-content:center;align-items:center}
+  #viewer .vvideo video{display:block;width:auto;max-width:100%;height:auto;max-height:min(84vh,1080px);background:#080808}
+  #viewer .vnav{display:flex;justify-content:space-between;align-items:center;gap:10px;
+    padding:14px 4vw;border-top:1px solid var(--line);background:#fff}
+  #viewer .vnav .cnt{font-family:"SF Mono",Menlo,monospace;font-size:11px;color:#999}
+
+  @media (max-width:860px){
+    .tl,.lm,.rm,.bc{display:none}
+    .br-ui .wordbtn{font-size:30px}
+    .bl{min-width:150px}
+    .wordmark h1{font-size:17vw}
+  }
+</style>
+</head>
+<body>
+
+<div id="loader">
+  <div class="card">🂡</div>
+  <div class="pct">Fallon Qiu — <span id="pct">00</span>%</div>
+</div>
+
+<!-- 固定大字图层：不随场景翻滚，牌从上层飞过 -->
+<div class="wordmark-fixed disp">
+  <h1>Fallon Qiu</h1>
+  <p>gRAPHIC dESIGN pORTFOLIO — 2026</p>
+</div>
+
+<!-- ================= 3D SCENE ================= -->
+<div class="stage">
+  <div class="cloud" id="cloud">
+
+    <!-- ghost suits, far -->
+    <div class="obj far" data-z="-300" data-r="-10" data-spin="8" data-zd="70" style="--x:-30vw;--y:-16vh;--z:-300;--r:-10;--fd:.9s">
+      <div class="float suitglyph">♠</div>
+    </div>
+    <div class="obj far" data-z="-340" data-r="12" data-spin="-6" data-zd="60" style="--x:26vw;--y:14vh;--z:-340;--r:12;--fd:.5s">
+      <div class="float suitglyph" style="color:#c22">♥</div>
+    </div>
+
+    <!-- project flip cards: front/back = two projects, built by JS -->
+    <div class="obj cardobj" data-z="140" data-r="-9" data-spin="18" data-zd="230" data-front="2" data-back="13" data-w="230" style="--x:-36vw;--y:-24vh;--z:140;--r:-9;--fd:.1s"></div>
+    <div class="obj cardobj" data-z="60" data-r="7" data-spin="-14" data-zd="170" data-front="1" data-back="9" data-w="200" style="--x:-15vw;--y:-30vh;--z:60;--r:7;--fd:.7s"></div>
+    <div class="obj cardobj" data-z="90" data-r="-4" data-spin="22" data-zd="200" data-front="0" data-back="7" data-w="170" style="--x:8vw;--y:-28vh;--z:90;--r:-4;--fd:.3s"></div>
+    <div class="obj cardobj" data-z="170" data-r="11" data-spin="-20" data-zd="260" data-front="3" data-back="6" data-w="200" style="--x:30vw;--y:-26vh;--z:170;--r:11;--fd:.55s"></div>
+    <div class="obj cardobj" data-z="120" data-r="-12" data-spin="16" data-zd="220" data-front="5" data-back="4" data-w="200" style="--x:-34vw;--y:16vh;--z:120;--r:-12;--fd:.85s"></div>
+    <div class="obj cardobj" data-z="80" data-r="6" data-spin="-24" data-zd="190" data-front="8" data-back="12" data-w="170" style="--x:-13vw;--y:27vh;--z:80;--r:6;--fd:.2s"></div>
+    <div class="obj cardobj" data-z="200" data-r="8" data-spin="26" data-zd="280" data-front="11" data-back="10" data-w="230" style="--x:13vw;--y:24vh;--z:200;--r:8;--fd:.65s"></div>
+    <div class="obj cardobj" data-z="50" data-r="-7" data-spin="12" data-zd="160" data-front="14" data-back="15" data-w="200" style="--x:36vw;--y:18vh;--z:50;--r:-7;--fd:.45s"></div>
+
+    <!-- props -->
+    <div class="obj" data-z="110" data-r="14" data-spin="30" data-zd="210" style="--x:33vw;--y:-4vh;--z:110;--r:14;--fd:.15s">
+      <div class="float"><div class="chipobj"></div></div>
+    </div>
+    <div class="obj dieobj" data-z="160" data-r="0" data-spin="-20" data-zd="200" style="--x:60vw;--y:-60vh;--z:160;--r:0;--fd:.3s">
+      <div class="float"><canvas class="dieCv" width="440" height="440"></canvas></div>
+    </div>
+    <div class="obj dieobj" data-z="150" data-r="0" data-spin="16" data-zd="180" style="--x:64vw;--y:-64vh;--z:150;--r:0;--fd:.6s">
+      <div class="float"><canvas class="dieCv" width="440" height="440"></canvas></div>
+    </div>
+    <div class="obj dieobj" data-z="170" data-r="0" data-spin="-12" data-zd="220" style="--x:68vw;--y:-68vh;--z:170;--r:0;--fd:.9s">
+      <div class="float"><canvas class="dieCv" width="440" height="440"></canvas></div>
+    </div>
+    <div class="obj" data-z="30" data-r="4" data-spin="10" data-zd="130" style="--x:28vw;--y:12vh;--z:30;--r:4;--fd:.95s">
+      <div class="float"><div class="datadisc"><pre>
+Fallon Qiu
+gRAPHIC dESIGN
+—
+bRANDING
+tYPE / fRAMING
+aNOTHER
+—
+2019 → 2026
+16 pROJECTS
+      </pre></div></div>
+    </div>
+    <div class="obj" data-z="70" data-r="-10" data-spin="-16" data-zd="180" style="--x:40vw;--y:30vh;--z:70;--r:-10;--fd:.35s">
+      <div class="float"><div class="jelly"><span>(wORK)</span></div></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ================= UI OVERLAY ================= -->
+<nav class="ui pillnav" id="pillnav">
+  <a class="brand" href="javascript:void(0)" onclick="closeSheet()">Fallon Qiu<em>♦</em></a>
+  <button class="menu" id="menuBtn">
+    <span class="faces">♠<b>16</b><span class="rd">♥</span></span>
+    <span id="menuLabel">mENU</span>
+    <span class="dots"><i></i><i></i><i></i></span>
+  </button>
+</nav>
+
+<div class="ui tr corner">
+  <a class="chip" href="mailto:3243539276@qq.com">3243539276@qq.com <span class="tag">mAIL</span></a>
+  <a class="chip" href="javascript:void(0)" onclick="openSheet('#contact')">Fallon Qiu <span class="tag">wECHAT</span></a>
+</div>
+
+<div class="ui lm corner">
+  <span>pROJECTS <b>16</b></span>
+  <span>aWARDS <b>8</b></span>
+  <span>fIELD <b>bRAND / tYPE / wEB</b></span>
+  <span class="soon">pORTFOLIO 2026</span>
+</div>
+
+<div class="ui rm corner">
+  <svg class="playstick" viewBox="0 0 100 100" id="shuffleStick">
+    <path d="M50 4 L60 22 L80 12 L78 34 L98 38 L84 52 L98 68 L76 70 L78 92 L58 82 L50 98 L42 82 L22 92 L24 70 L2 68 L16 52 L2 38 L22 34 L20 12 L40 22 Z"
+      fill="#d8f527" stroke="#98b400" stroke-width="3" stroke-linejoin="round"/>
+    <text x="50" y="47" text-anchor="middle" font-size="17" font-weight="900" font-style="italic" fill="#111">sHUF</text>
+    <text x="50" y="65" text-anchor="middle" font-size="17" font-weight="900" font-style="italic" fill="#111">fLE</text>
+  </svg>
+  <a class="chip" href="javascript:void(0)" onclick="openSheet('#about')">♠ aBOUT mE</a>
+</div>
+
+<nav class="ui bc corner" id="numnav"></nav>
+
+<button class="ui br-ui corner" id="workBtn">
+  <span class="wordbtn disp">wORK</span>
+  <span class="arrow">↓</span>
+</button>
+
+<!-- ================= SECOND-LEVEL PAGE ================= -->
+
+<div id="sheet">
+  <main id="work">
+    <div class="head">
+      <h2 class="disp">wORK</h2>
+      <span id="workCount"></span>
+    </div>
+    <div class="grid" id="grid"></div>
+  </main>
+
+  <section id="about">
+    <div class="head"><h2 class="disp">aBOUT mE <span style="color:var(--red)">♥</span></h2></div>
+    <div class="abgrid">
+      <div class="abcol">
+        <h4><b>♠</b> 关于我 aBOUT</h4>
+        <p>邱野，视觉传达设计师，现就读于广州美术学院。拥有品牌视觉、字体排版、平面传播与数字界面设计经验，参与品牌设计、活动物料、社媒传播、界面原型与 AI 辅助设计流程的实践与优化。</p>
+        <p style="margin-top:10px">持续探索 AI 与设计工作流的结合，包括图像生成、文案辅助、原型搭建、Vibe Coding 与 Agent 协作，尝试以更高效、更具实验性的方式，推进从创意发散到视觉落地的完整过程。</p>
+      </div>
+      <div class="abcol">
+        <h4><b>♥</b> 技能 sKILLS</h4>
+        <p>品牌视觉系统、字体与版式设计、平面传播、社媒视觉、活动物料、数字界面设计、3D 视觉辅助、AI 辅助创意与执行。</p>
+        <div class="tools">
+          <i>Figma</i><i>Photoshop</i><i>Illustrator</i><i>InDesign</i><i>After Effects</i><i>Glyphs</i><i>Blender</i>
+          <i>ChatGPT</i><i>Claude</i><i>Gemini</i><i>Midjourney</i><i>Recraft</i><i>Codex</i><i>Claude Code</i><i>Vibe Coding</i>
+        </div>
+      </div>
+      <div class="abcol">
+        <h4><b>♣</b> 经历 wORK hISTORY</h4>
+        <ul>
+          <li>不亦乐乎 BY-ENJOY <span>2025.07 — 2025.09</span></li>
+          <li>腾讯 QQ浏览器 <span>2026.05 — 2026.09</span></li>
+        </ul>
+      </div>
+      <div class="abcol">
+        <h4><b>♦</b> 获奖 aWARDS</h4>
+        <ul>
+          <li>KTK靳埭强设计奖 <span>全国赛优秀奖 ×4</span></li>
+          <li>Hiiibrand Awards <span>优异奖 ×2</span></li>
+          <li>鹤湖国际海报节 <span>优异奖</span></li>
+          <li>白金国际创意大赛 <span>优秀奖 ×1，入围奖 ×4</span></li>
+          <li>中国之星设计奖 <span>优秀奖 ×1</span></li>
+          <li>中国大学生创意节 <span>一等奖，二等奖</span></li>
+          <li>中国好创意 <span>全国三等奖 ×3</span></li>
+          <li>东方设计奖 <span>全国一等奖</span></li>
+        </ul>
+      </div>
+      <div class="abcol">
+        <h4><b>★</b> 荣誉/科研 hONORS / rESEARCH</h4>
+        <ul>
+          <li>广州美术学院三好学生 <span>二等奖学金</span></li>
+          <li>广州美术学院三好学生 <span>三等奖学金</span></li>
+          <li>广州美术学院百优学习标兵</li>
+          <li>国家级大学生创新创业训练计划优秀结项 <span>2025 — 2026</span></li>
+          <li>省级大学生课外科研“攀登计划”优秀结项 <span>2025 — 2026</span></li>
+          <li>外观专利 <span>2025 — 2026</span></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <footer id="contact">
+    <h2 class="disp">tHANK yOU<br>fOR <em>wATCHING</em> ♠</h2>
+    <div class="row">
+      <a class="chip" href="mailto:3243539276@qq.com">3243539276@qq.com <span class="tag">mAIL</span></a>
+      <a class="chip" href="tel:+8618204318727">+86 18204318727 <span class="tag">tEL</span></a>
+      <span class="chip">Fallon Qiu <span class="tag">wECHAT</span></span>
+    </div>
+    <div class="foot">
+      <span>© 2026 Fallon Qiu / 邱野 — gRAPHIC dESIGN pORTFOLIO</span>
+      <button class="chip" style="padding:5px 12px" onclick="document.getElementById('sheet').scrollTo({top:0,behavior:'smooth'})">bACK tO tOP ↑</button>
+    </div>
+  </footer>
+</div>
+
+<!-- ================= PROJECT VIEWER ================= -->
+<div id="viewer">
+  <div class="vtop">
+    <span class="vix" id="vix">A<small>♠</small></span>
+    <h3 id="vtitle">…<i id="vtitleEn"></i></h3>
+    <span class="sp"></span>
+    <button class="chip" id="vclose">cLOSE ✕</button>
+  </div>
+  <div class="vbody" id="vbody">
+    <p class="vdesc" id="vdesc"></p>
+    <div class="vimgs" id="vimgs"></div>
+  </div>
+  <div class="vnav">
+    <button class="chip" id="vprev">← pREV</button>
+    <span class="cnt" id="vcnt"></span>
+    <button class="chip" id="vnext">nEXT →</button>
+  </div>
+</div>
+
+<script src="die-data.js"></script>
+<script>
+history.scrollRestoration = 'manual';
+window.scrollTo(0,0);
+
+/* ---------- data ---------- */
+const RANKS=['A','2','3','4','5','6','7','8','9','10','J','Q','K','A','2','3'];
+const SUITS=['♠','♥','♣','♦'];
+const PROJECTS=[
+  {zh:'澳门设计大奖巡回展·福州站',en:'mACAO dESIGN aWARDS iN fUZHOU',pages:[3,4,5],cover:4,videos:[{src:'video/p01-macao.mp4',poster:'video/p01-macao-poster.png'}],
+   desc:'参与「澳门设计大奖巡回展·福州站」的展览视觉与落地设计。以键盘、手部影像和散落键帽构建核心视觉，将澳门与福州两座城市的交流转化为输入、连接与共创的视觉隐喻。'},
+  {zh:'LOADING 视觉推广方案',en:'LOADING — AI-SPEED POP-UP',pages:[7,8,9],cover:7,videos:[{src:'video/p02-loading.mp4',poster:'video/p02-loading-poster.png'}],
+   desc:'「LOADING」视觉推广方案服务于广州美术学院艺术与科技联合工作坊。通过网格交织的字母、文字与数字层层叠压呈现 AI 生成动态；以红、黄、蓝三原色呼应数字世界的印刷基底，并通过实时叠加、刷新与混合模拟图像生成过程，呈现 AI 技术底层逻辑与数字时代的科技、艺术张力。'},
+  {zh:'强力凉茶 品牌形象设计',en:'pOWER-uP hERBAL dRINK',pages:[11,12,13,40],cover:11,
+   desc:'强力凉茶是一个融合传统与创新的新式广东凉茶品牌。品牌以「承古革新」为理念，在保留凉茶清热解毒功效的同时，通过口感与视觉创新降低年轻消费者的尝试门槛；以定制「强力」字体、药铺竖排招牌、虎纹与橙黑配色建立鲜明识别，在传统文化与当代潮流之间形成连接。'},
+  {zh:'“艺启千年”南越水闸立体形态创作展',en:'aRT fOR tHOUSANDS oF yEARS',pages:[14,15],cover:15,
+   desc:'面向南汉二陵博物馆打造的水闸主题展览，由广东省考古研究院与广州美术学院联合主办。以「跨时空对话」为概念，提取传统榫卯咬合结构与岭南水利文明线索，通过现代艺术设计重构水闸智慧，让千年水利遗产与当代审美对话。'},
+  {zh:'FIL 六周年 × JACQUES WEI 联名时装大秀',en:'FIL 6tH aNNIVERSARY × JACQUES WEI',pages:[16,17,39],cover:17,videos:[{src:'video/p05-fil.mp4',poster:'video/p05-fil-poster.png'}],
+   desc:'FIL 品牌六周年特别呈现的联名时装大秀，携手设计师品牌 JACQUES WEI 共同打造。以流金奢华为核心，大量运用金属质感、豹纹与锋利剪裁，将奢华氛围和现代时装美学融合，形成高级、前卫且具有辨识度的跨界视觉。'},
+  {zh:'越秀与海上丝绸之路智慧展',en:'sMART mARITIME sILK rOAD eXHIBITION',pages:[47,48,49,50,51,52,53,54,55,56,57,58],cover:56,
+   desc:'以广州海上丝绸之路为主题的数字互动展览空间设计。展览沿「出海—航行—归乡—贸易」的历史路径展开，通过雷达感应、数字海浪、交互地图、数据库检索与 NFC 文物浏览等媒介，将海丝遗址、文物与城市记忆转化为可参与的沉浸式体验；以深色空间与蓝色光效构建科技与海洋意象，在古今时空对照中呈现广州海丝文化的延续与当代表达。'},
+  {zh:'广州海上丝绸之路十二遗址画册设计',en:'mARITIME sILK rOAD tRAIL',pages:[21,22,23],cover:21,
+   desc:'以广州海上丝绸之路为创作线索，围绕十二处遗址完成主题画册设计。内容涵盖佛教宗教文化、广州本土历史景点与人文风貌；通过严谨清晰的信息编排，将遗址位置、历史资料与城市参观路线组织为连续折页，系统呈现历史脉络、文化遗存与地域特色。'},
+  {zh:'广东省中医院养生茶海外推广包装设计',en:'REGIMEN — HERBAL TEA PACKAGING',pages:[24,25,41],cover:25,videos:[{src:'video/p08-regimen.mp4',poster:'video/p08-regimen-poster.png'}],
+   desc:'本项目为广东省中医院养生茶系列进行海外宣传推广与产品包装设计。以中医药文化为内核，将化学符号视觉语言与中国传统笔画相结合，通过描绘中草药从生长、开花到结果的完整生命过程，把传统草本智慧转化为国际化视觉符号；在传递养生功效的同时，实现中医药文化的海外表达与品牌传播。'},
+  {zh:'“独白”文创文具品牌设计',en:'mONOLOGUE — sTATIONERY bRAND',pages:[26,27,28],cover:26,videos:[{src:'video/p09-monologue.mp4',poster:'video/p09-monologue-poster.png'}],
+   desc:'“独白”是聚焦心理疗愈与自我表达的文创文具品牌，以“内心自述”为核心概念，将书写、阅读与绘画转化为与自我对话的媒介。通过专属标志与视觉形象，塑造温柔治愈、兼具文艺质感的品牌气质，打造以内心探索、情绪记录为特色的产品体系；以情感价值赋能实用文具，构建有温度、有精神共鸣的新一代文具品牌。'},
+  {zh:'《多维的感知》主题展览设计',en:'mULTI-dIMENSIONAL pERCEPTION',pages:[29,42],cover:29,
+   desc:'《多维的感知》是广州美术学院艺术与科技专业主题展览，围绕立体构造展开创作与研究。展览以材料突破为核心，探索空间、形态与结构的多维可能性；通过多元材料实验与创新构造手法，打破传统立体造型边界，将理性结构逻辑与感性艺术表达结合，呈现艺术与科技融合下的多维视觉体验。'},
+  {zh:'霁境 — 艺术疗愈穿戴式装置',en:'JI JING — ART HEALING WEARABLE INSTALLATION',pages:[65,66,67],cover:65,
+   desc:'将媒介材料与雪花形态开合结构相结合的互动实验装置。作品通过传感器捕捉人体温度变化与情绪波动，并将这些不可见的身体信号转化为装置的开合、光影或声音反馈。雪花结构会随着观众状态产生不同的动态反应，形成具有生命感的互动关系；作品试图探索人体、情绪与外部空间之间的联系，让观众在参与过程中重新感知自身的细微变化。'},
+  {zh:'TraceOrigin 茶叶品牌视觉设计',en:'TRACEORIGIN — TEA BRAND IDENTITY',pages:[31,32,46],cover:31,
+   desc:'TraceOrigin 是一套以茶叶风味与产地溯源为主题的品牌视觉设计。项目通过不同茶汤的色泽和晕染形态区分茶叶品类，并将其延展至标志、产品标签、卡片与包装系统，呈现茶叶自然、轻盈且具有差异性的品牌形象。'},
+  {zh:'翠色千帆·墨韵寻踪',en:'sAILING tHROUGH tHE pEARL rIVER pAINTING',pages:[59,60,61,62,63,64],cover:59,
+   desc:'与南汉二陵博物馆合作，以清代《广州珠江港景图》为叙事入口打造海上丝绸之路数字文化体验。项目通过「入画、识人、辨物、循路、成器、识色」六个互动章节，引导观众探索画卷中的港口空间、人物商贸、船舶货物、海外航线与陶瓷工艺；将历史长卷转化为可浏览、可发现、可追踪的文化叙事，呈现广州海上贸易与东方色彩之间的联系。'},
+  {zh:'元宝高考通 内容平台运营视觉',en:'yUANBAO gAOKAO — cONTENT oPERATIONS vISUAL',pages:[68,69,70,71],cover:68,
+   desc:'以「元宝高考通」为核心产品，由 QQ 浏览器联合腾讯新闻开展高考内容传播。围绕备考、志愿填报、院校与专业信息等不同阶段需求，完成闪屏、动态信息流、插画广告及外宣视频等多种资源位设计；以明快的蓝色体系、模块化信息结构与轻松活力的角色插画，建立统一且具有阶段适应性的高考季运营视觉。'},
+  {zh:'创作者大会视觉设计',en:'CREATOR CON — cREATOR cONFERENCE vISUAL',pages:[75,76,77],cover:75,
+   desc:'这是一个面向内容创作者的年度大会视觉项目，以“深度创作，文字有力”为核心概念，将笔尖、火焰、晶体与手部形象组合成具有力量感的视觉符号。整体采用红橙渐变与立体材质，构建热烈、有冲击力的大会视觉体系，并延展至舞台大屏、主题海报和现场装置等应用场景。'},
+  {zh:'暑期抽奖活动',en:'sUMMER lUCKY dRAW cAMPAIGN',pages:[72,73,74],cover:72,
+   desc:'本项目围绕暑期用户活跃目标，通过抽奖玩法串联任务参与、奖品激励与结果反馈，完成活动主视觉及多场景物料设计，打造轻松、有趣的暑期活动体验。'}
+];
+const pg=n=>'img/p'+String(n).padStart(2,'0')+'.jpg';
+const COVER_OVERRIDES={0:'img/c01-poster.jpg',1:'img/c02-loading.jpg',2:'img/c03-herbal.jpg',3:'img/c04-poster.jpg?v=2',4:'img/c05-fil.jpg?v=2',5:'img/c06-maritime.jpg',6:'img/c07-silkroad.jpg',7:'img/c08-regimen.jpg',8:'img/c09-monologue.jpg',9:'img/c10-perception.jpg',10:'img/c11-jijing-v2.jpg',11:'img/c12-traceorigin.jpg',12:'img/c13-riverside.jpg',13:'img/c14-gaokao.jpg',14:'img/c15-creatorcon.jpg',15:'img/c16-summer-lottery.jpg'};
+const cv=i=>COVER_OVERRIDES[i]||'img/c'+String(i+1).padStart(2,'0')+'.jpg';
+const fr=n=>'img/f0'+n+'.jpg';
+const isRed=i=>SUITS[i%4]==='♥'||SUITS[i%4]==='♦';
+
+/* ---------- loader ---------- */
+const pctEl=document.getElementById('pct');
+const t0=performance.now();
+(function tick(){
+  const p=Math.min(1,(performance.now()-t0)/1100);
+  pctEl.textContent=String(Math.floor(p*100)).padStart(2,'0');
+  if(p<1)requestAnimationFrame(tick);
+  else document.getElementById('loader').classList.add('done');
+})();
+setTimeout(()=>{pctEl.textContent='100';document.getElementById('loader').classList.add('done');},1900);
+
+/* ---------- work grid ---------- */
+const grid=document.getElementById('grid');
+grid.innerHTML=PROJECTS.map((p,i)=>`
+  <article class="wcard" data-open="${i}">
+    <div class="ph"><img src="${cv(i)}" alt="${p.zh}" loading="lazy"></div>
+    <span class="ix ${isRed(i)?'r':''}">${RANKS[i]}<small>${SUITS[i%4]}</small></span>
+    <div class="meta">
+      <h3>${p.zh}<i>${p.en}</i></h3>
+      <small>${String(i+1).padStart(2,'0')}/16</small>
+    </div>
+  </article>`).join('');
+document.getElementById('workCount').textContent='(16) sELECTED pROJECTS — bRANDING / tYPE / fRAMING / aNOTHER';
+
+/* ---------- viewer ---------- */
+const viewer=document.getElementById('viewer');
+let curIdx=0;
+function openProject(i){
+  curIdx=(i+16)%16;
+  const p=PROJECTS[curIdx];
+  document.getElementById('vix').innerHTML=RANKS[curIdx]+'<small>'+SUITS[curIdx%4]+'</small>';
+  document.getElementById('vix').className='vix '+(isRed(curIdx)?'r':'');
+  document.getElementById('vtitle').childNodes[0].textContent=p.zh;
+  document.getElementById('vtitleEn').textContent=p.en;
+  document.getElementById('vdesc').textContent=p.desc;
+  const imageMedia=p.pages.map(n=>`<img src="${pg(n)}" alt="${p.zh}" loading="lazy">`).join('');
+  const videoMedia=(p.videos||[]).map(v=>`<figure class="vvideo"><video src="${v.src}" poster="${v.poster}" controls autoplay muted loop playsinline preload="metadata" aria-label="${p.zh} 动态展示"></video></figure>`).join('');
+  document.getElementById('vimgs').innerHTML=imageMedia+videoMedia;
+  document.getElementById('vcnt').textContent=String(curIdx+1).padStart(2,'0')+' / 16';
+  document.getElementById('vbody').scrollTop=0;
+  viewer.classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function closeViewer(){viewer.querySelectorAll('video').forEach(v=>v.pause());viewer.classList.remove('open');document.body.style.overflow='';}
+document.getElementById('vclose').onclick=closeViewer;
+document.getElementById('vprev').onclick=()=>openProject(curIdx-1);
+document.getElementById('vnext').onclick=()=>openProject(curIdx+1);
+addEventListener('keydown',e=>{
+  if(e.key==='Escape'){
+    if(viewer.classList.contains('open'))closeViewer();
+    else if(sheet.classList.contains('open'))closeSheet();
+    return;
+  }
+  if(!viewer.classList.contains('open'))return;
+  if(e.key==='ArrowLeft')openProject(curIdx-1);
+  if(e.key==='ArrowRight')openProject(curIdx+1);
+});
+grid.addEventListener('click',e=>{
+  const c=e.target.closest('.wcard');
+  if(c)openProject(+c.dataset.open);
+});
+
+/* ---------- number nav：点数字把对应的牌"发"到台前 ---------- */
+const numnav=document.getElementById('numnav');
+for(let i=1;i<=8;i++){
+  const b=document.createElement('button');b.textContent=i;
+  b.onclick=()=>{
+    const cs=cardStates[i-1];if(!cs||cs.dragging)return;
+    cs.txp=0;cs.typ=-2;cs.poseX=0;cs.targetX=Math.round(cs.targetX/360)*360;
+    cs.target=Math.round(cs.cur/360)*360; /* 转回正面、摆正 */
+    cs.o.rT=0;cs.o.z=250;
+    cs.nextMove=performance.now()+7000;
+  };
+  numnav.appendChild(b);
+}
+const more=document.createElement('button');more.className='more';more.textContent='mORE 8';
+more.onclick=()=>openSheet('#work');
+numnav.appendChild(more);
+
+/* ---------- second-level page (sheet) ---------- */
+const sheet=document.getElementById('sheet');
+const menuBtn=document.getElementById('menuBtn'),menuLabel=document.getElementById('menuLabel');
+function openSheet(hash){
+  sheet.classList.add('open');
+  document.querySelectorAll('.corner').forEach(el=>el.classList.add('hidden-by-scroll'));
+  document.getElementById('pillnav').classList.add('docked');
+  menuLabel.textContent='cLOSE';
+  requestAnimationFrame(()=>{
+    const t=hash&&sheet.querySelector(hash);
+    sheet.scrollTo({top:t?Math.max(0,t.offsetTop-96):0,behavior:'instant'});
+  });
+}
+function closeSheet(){
+  sheet.classList.remove('open');
+  document.querySelectorAll('.corner').forEach(el=>el.classList.remove('hidden-by-scroll'));
+  document.getElementById('pillnav').classList.remove('docked');
+  menuLabel.textContent='mENU';
+}
+menuBtn.onclick=()=>sheet.classList.contains('open')?closeSheet():openSheet('#work');
+
+document.getElementById('workBtn').onclick=()=>openSheet('#work');
+
+/* ---------- build 3D flip cards (front/back = two projects, pure image faces) ---------- */
+function faceHTML(i){
+  const media = i===10
+    ? `<div class="frames">${[1,2,3,4].map(n=>`<img src="${fr(n)}" alt="${PROJECTS[i].en}">`).join('')}</div>`
+    : `<img src="${cv(i)}" alt="${PROJECTS[i].en}">`;
+  return `<div class="ph">${media}</div><div class="sheen"></div>`;
+}
+const cardStates=[];
+const DECK={x:38,y:46}; /* 右下角牌堆（发牌起点） */
+document.querySelectorAll('.cardobj').forEach((el,ci)=>{
+  const f=+el.dataset.front,b=+el.dataset.back,w=+el.dataset.w;
+  el.innerHTML=`<div class="float"><div class="pcard3d" style="width:${w}px"><div class="inner">
+      <div class="face pcard front" style="--sd:${(ci*0.9).toFixed(1)}s">${faceHTML(f)}</div>
+      <div class="face pcard back" style="--sd:${(ci*0.9+0.4).toFixed(1)}s">${faceHTML(b)}</div>
+    </div></div></div>`;
+  const lx0=parseFloat(el.style.getPropertyValue('--x'))||0;
+  const ly0=parseFloat(el.style.getPropertyValue('--y'))||0;
+  const dx=DECK.x+ci*0.5,dy=DECK.y+ci*0.3;
+  cardStates.push({el,inner:el.querySelector('.inner'),f,b,cur:0,target:0,rx:0,phase:ci*0.9,dragging:false,
+    px:dx,py:dy,txp:dx,typ:dy,lx0,ly0,nextMove:Infinity,
+    nextSpin:performance.now()+6000+ci*2000,spinCd:0,fast:0,
+    curX:0,targetX:0,poseX:0,repX:0,repY:0,
+    kx:0.85+((ci*37)%40)/100,ky:(((ci*53)%60)-30)/150});
+});
+/* 德州扑克式发牌进场：先掷骰子，骰子落定后逐张旋转飞入 */
+setTimeout(()=>{
+  cardStates.forEach((cs,i)=>{
+    setTimeout(()=>{
+      cs.txp=cs.lx0;cs.typ=cs.ly0;
+      cs.target+=720; /* 甩牌自旋 */
+      cs.o&&(cs.o.rT=Math.random()*30-15);
+      cs.fast=performance.now()+1300;
+      cs.nextMove=performance.now()+5200+Math.random()*4800;
+    },i*170);
+  });
+},3500);
+
+/* ---------- 真·3D 骰子 ×3：与扑克同空间（全屏物理：横穿弹跳、空中互撞、随机散落） ---------- */
+let drawDie=null,dieKick=null,dieToss=null;
+(function(){
+  const els=[...document.querySelectorAll('.dieobj')];
+  if(!els.length||typeof DIE_DATA==='undefined')return;
+  const b64=s=>{const bin=atob(s),u=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);return u;};
+  /* 四元数工具 */
+  const qmul=(a,b)=>[a[0]*b[3]+a[3]*b[0]+a[1]*b[2]-a[2]*b[1],
+                     a[1]*b[3]+a[3]*b[1]+a[2]*b[0]-a[0]*b[2],
+                     a[2]*b[3]+a[3]*b[2]+a[0]*b[1]-a[1]*b[0],
+                     a[3]*b[3]-a[0]*b[0]-a[1]*b[1]-a[2]*b[2]];
+  const qaxis=(ax,ang)=>{const n=Math.hypot(ax[0],ax[1],ax[2])||1,s=Math.sin(ang/2);return[ax[0]/n*s,ax[1]/n*s,ax[2]/n*s,Math.cos(ang/2)];};
+  const qnorm=q=>{const l=Math.hypot(q[0],q[1],q[2],q[3])||1;return q.map(v=>v/l);};
+  const qdot=(a,b)=>a[0]*b[0]+a[1]*b[1]+a[2]*b[2]+a[3]*b[3];
+  const slerp=(a,b,t)=>{let d=qdot(a,b);if(d<0){b=b.map(v=>-v);d=-d;}
+    if(d>0.9995)return qnorm(a.map((v,i)=>v+(b[i]-v)*t));
+    const th=Math.acos(d),s=Math.sin(th);
+    return a.map((v,i)=>(v*Math.sin((1-t)*th)+b[i]*Math.sin(t*th))/s);};
+  const qmat=q=>{const[x,y,z,w]=q;return[
+    1-2*(y*y+z*z),2*(x*y+z*w),2*(x*z-y*w),0,
+    2*(x*y-z*w),1-2*(x*x+z*z),2*(y*z+x*w),0,
+    2*(x*z+y*w),2*(y*z-x*w),1-2*(x*x+y*y),0, 0,0,0,1];};
+  /* 24 个轴对齐姿态（掷骰落定候选） */
+  const FACES=[],hq=Math.SQRT1_2;
+  const bases=[[0,0,0,1],[0,hq,0,hq],[0,1,0,0],[0,-hq,0,hq],[0,0,hq,hq],[0,0,-hq,hq]];
+  const spins=[[0,0,0,1],[hq,0,0,hq],[1,0,0,0],[-hq,0,0,hq]];
+  for(const b of bases)for(const s of spins)FACES.push(qnorm(qmul(s,b)));
+  /* 每颗骰子独立画布/上下文 */
+  const VS='attribute vec3 aP;attribute vec3 aN;uniform mat4 uM,uP;varying vec3 vN,vP;'+
+    'void main(){vec4 w=uM*vec4(aP,1.);vP=w.xyz;vN=mat3(uM[0].xyz,uM[1].xyz,uM[2].xyz)*aN;gl_Position=uP*w;}';
+  const FS='precision mediump float;varying vec3 vN,vP;uniform vec3 uC;uniform float uR;'+
+    'void main(){vec3 N=normalize(vN);vec3 L=normalize(vec3(.45,.85,.55));vec3 V=normalize(-vP);'+
+    'float dif=max(dot(N,L),0.);vec3 H=normalize(L+V);'+
+    'float spec=pow(max(dot(N,H),0.),mix(120.,24.,uR))*(1.-uR*.5);'+
+    'float rim=pow(1.-max(dot(N,V),0.),2.5)*.22;'+
+    'vec3 c=uC*(.42+.62*dif)+vec3(1.)*spec*.7+vec3(1.,.95,.8)*rim;gl_FragColor=vec4(c,1.);}';
+  const OVERRIDE=[[0.95,0.95,0.96],[0.05,0.05,0.06]]; /* 白骰体 + 黑点数 */
+  const HDIE=1.05,S=HDIE/32767,CAMZ=5.2;
+  function initGL(cv){
+    const gl=cv.getContext('webgl',{alpha:true,antialias:true});
+    if(!gl)return null;
+    const sh=(t,s)=>{const o=gl.createShader(t);gl.shaderSource(o,s);gl.compileShader(o);return o;};
+    const pr=gl.createProgram();
+    gl.attachShader(pr,sh(gl.VERTEX_SHADER,VS));gl.attachShader(pr,sh(gl.FRAGMENT_SHADER,FS));
+    gl.linkProgram(pr);gl.useProgram(pr);
+    const loc={aP:gl.getAttribLocation(pr,'aP'),aN:gl.getAttribLocation(pr,'aN'),
+      uM:gl.getUniformLocation(pr,'uM'),uP:gl.getUniformLocation(pr,'uP'),
+      uC:gl.getUniformLocation(pr,'uC'),uR:gl.getUniformLocation(pr,'uR')};
+    const prims=DIE_DATA.prims.map((p,pi)=>{
+      const vb=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,vb);gl.bufferData(gl.ARRAY_BUFFER,new Int16Array(b64(p.pos).buffer),gl.STATIC_DRAW);
+      const nb=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,nb);gl.bufferData(gl.ARRAY_BUFFER,new Int8Array(b64(p.nrm).buffer),gl.STATIC_DRAW);
+      const ib=gl.createBuffer();gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,ib);gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,new Uint16Array(b64(p.idx).buffer),gl.STATIC_DRAW);
+      return {vb,nb,ib,n:p.n,c:OVERRIDE[pi]||p.color,r:p.rough};
+    });
+    gl.enable(gl.DEPTH_TEST);
+    const f=1/Math.tan(34*Math.PI/360),nn=.1,fa=100;
+    const P=[f,0,0,0, 0,f,0,0, 0,0,(fa+nn)/(nn-fa),-1, 0,0,2*fa*nn/(nn-fa),0];
+    return q=>{
+      gl.viewport(0,0,cv.width,cv.height);
+      gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
+      const M=qmat(q);
+      gl.uniformMatrix4fv(loc.uP,false,P);
+      gl.uniformMatrix4fv(loc.uM,false,[M[0]*S,M[1]*S,M[2]*S,0,M[4]*S,M[5]*S,M[6]*S,0,M[8]*S,M[9]*S,M[10]*S,0,0,0,-CAMZ,1]);
+      for(const p of prims){
+        gl.bindBuffer(gl.ARRAY_BUFFER,p.vb);gl.enableVertexAttribArray(loc.aP);gl.vertexAttribPointer(loc.aP,3,gl.SHORT,false,0,0);
+        gl.bindBuffer(gl.ARRAY_BUFFER,p.nb);gl.enableVertexAttribArray(loc.aN);gl.vertexAttribPointer(loc.aN,3,gl.BYTE,false,0,0);
+        gl.uniform3fv(loc.uC,p.c);gl.uniform1f(loc.uR,p.r);
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,p.ib);
+        gl.drawElements(gl.TRIANGLES,p.n,gl.UNSIGNED_SHORT,0);
+      }
+    };
+  }
+  const rnd=(a,b)=>a+Math.random()*(b-a);
+  const dice=els.map(el=>({el,cv:el.querySelector('.dieCv'),draw:initGL(el.querySelector('.dieCv')),
+    x:0,y:-9999,vx:0,vy:0,q:qnorm([.3,.5,.2,.8]),axis:[1,.5,.3],w:0,mode:'wait',sq:null,tx:0,ty:0}));
+  if(dice.some(d=>!d.draw)){els.forEach(el=>el.remove());return;}
+  let settleAt=Infinity,scatterPts=null;
+  function toss(){
+    const W=innerWidth,Hh=innerHeight;
+    scatterPts=null;
+    dice.forEach((d,i)=>{
+      d.x=W+90+i*130; d.y=Hh*0.10-i*70;
+      d.vx=-(W*0.60+i*90)*rnd(0.9,1.1); d.vy=-(140+i*70);
+      d.axis=[rnd(-1,1),rnd(-1,1),rnd(-1,1)]; d.w=rnd(16,24);
+      d.mode='throw'; d.sq=null;
+    });
+    settleAt=performance.now()+2500;
+  }
+  dieToss=toss;
+  dieKick=v=>{for(const d of dice){if(d.mode!=='idle')continue;
+    d.w=Math.min(20,d.w+Math.abs(v)*0.05);d.axis=[rnd(-1,1),rnd(-1,1),rnd(-1,1)];}};
+  setTimeout(toss,900); /* 开场投掷 */
+  function scatter(){
+    /* 三个两两拉开距离的随机散落点 */
+    const W=innerWidth,Hh=innerHeight,pts=[];
+    let guard=0;
+    while(pts.length<3&&guard++<400){
+      const p=[rnd(0.10,0.88)*W,rnd(0.28,0.82)*Hh];
+      if(pts.every(q2=>Math.hypot(p[0]-q2[0],p[1]-q2[1])>W*0.24))pts.push(p);
+    }
+    while(pts.length<3)pts.push([rnd(0.1,0.9)*W,rnd(0.3,0.8)*Hh]);
+    return pts;
+  }
+  drawDie=(now,dt,crx=0,cry=0,crz=0)=>{
+    const W=innerWidth,Hh=innerHeight;
+    const hs=Math.min(dt,0.05),G=2600,FLOOR=Hh*0.80,R=62;
+    /* 场景旋转 → 四元数：billboard 抵消透视压缩，模型本体跟着世界真 3D 翻滚 */
+    const D=Math.PI/180;
+    const qC=qmul(qmul(qaxis([1,0,0],crx*D),qaxis([0,1,0],cry*D)),qaxis([0,0,1],crz*D));
+    const bb=`rotateZ(${(-crz).toFixed(2)}deg) rotateY(${(-cry).toFixed(2)}deg) rotateX(${(-crx).toFixed(2)}deg)`;
+    for(const d of dice){
+      if(d.mode==='throw'){
+        d.vy+=G*hs;
+        d.x+=d.vx*hs;d.y+=d.vy*hs;
+        if(d.y+R>FLOOR){d.y=FLOOR-R;d.vy*=-0.55;d.vx*=0.86;d.w*=0.8;
+          d.axis=[rnd(-1,1),rnd(-1,1),rnd(-1,1)];}
+        if(d.x<W*0.06+R){d.x=W*0.06+R;d.vx*=-0.62;}
+        if(d.x>W*0.97){d.x=W*0.97;d.vx*=-0.62;}
+        if(now>settleAt){
+          scatterPts=scatterPts||scatter();
+          const p=scatterPts[dice.indexOf(d)];
+          d.tx=p[0];d.ty=p[1];
+          let best=FACES[0],bd=-1;
+          for(const f of FACES){const d0=Math.abs(qdot(d.q,f));if(d0>bd){bd=d0;best=f;}}
+          d.sq=best;d.mode='settle';
+        }
+      }else if(d.mode==='settle'){
+        d.q=slerp(d.q,d.sq,Math.min(1,dt*8));
+        d.x+=(d.tx-d.x)*Math.min(1,dt*3.5);
+        d.y+=(d.ty-d.y)*Math.min(1,dt*3.5);
+        if(Math.abs(qdot(d.q,d.sq))>0.9995&&Math.abs(d.x-d.tx)<8&&Math.abs(d.y-d.ty)<8){
+          d.mode='idle';d.w=rnd(0.35,0.6);}
+      }else if(d.mode==='idle'){
+        d.w+=(0.45-d.w)*Math.min(1,dt*1.5);
+        d.axis[0]+=Math.sin(now/4000)*dt*.4;d.axis[2]+=Math.cos(now/5200)*dt*.4;
+      }
+      if(d.mode!=='settle'&&d.mode!=='wait'&&d.w>0.0001)d.q=qnorm(qmul(qaxis(d.axis,d.w*hs),d.q));
+      if(d.mode!=='wait'){
+        d.el.style.setProperty('--x',((d.x-W/2)/W*100).toFixed(2)+'vw');
+        d.el.style.setProperty('--y',((d.y-Hh/2)/Hh*100).toFixed(2)+'vh');
+      }
+      d.cv.style.transform=bb;      /* 贴片永远正对镜头 */
+      d.draw(qmul(qC,d.q));         /* 场景翻滚合成进模型姿态 */
+    }
+    /* 空中互撞：位置分离 + 冲量交换 + 撞击加旋 */
+    for(let i=0;i<3;i++)for(let j=i+1;j<3;j++){
+      const a=dice[i],b=dice[j];
+      if(a.mode==='wait'||b.mode==='wait')continue;
+      const dx=b.x-a.x,dy=b.y-a.y,dist=Math.hypot(dx,dy),min=130;
+      if(dist<min&&dist>1e-3){
+        const nx=dx/dist,ny=dy/dist,ov=(min-dist)/2;
+        a.x-=nx*ov;a.y-=ny*ov;b.x+=nx*ov;b.y+=ny*ov;
+        if(a.mode==='throw'||b.mode==='throw'){
+          const rv=(b.vx-a.vx)*nx+(b.vy-a.vy)*ny;
+          if(rv<0){
+            const imp=-rv*0.85;
+            a.vx-=nx*imp;a.vy-=ny*imp;b.vx+=nx*imp;b.vy+=ny*imp;
+            a.w=Math.min(26,a.w+imp*0.02);b.w=Math.min(26,b.w+imp*0.02);
+            a.axis=[rnd(-1,1),rnd(-1,1),rnd(-1,1)];b.axis=[rnd(-1,1),rnd(-1,1),rnd(-1,1)];
+          }
+        }
+      }
+    }
+  };
+})();
+function visibleFace(cs){
+  const cd=a=>Math.cos(a*Math.PI/180);
+  return cd(cs.curX)*cd(cs.cur)>0?cs.f:cs.b;
+}
+
+/* ---------- 3D scene ---------- */
+const cloud=document.getElementById('cloud');
+const objs=[...document.querySelectorAll('.obj')].map(el=>({
+  el,z:+el.dataset.z||0,r:+el.dataset.r||0,rT:+el.dataset.r||0,spin:+el.dataset.spin||0,zd:+el.dataset.zd||0,
+  card:el.classList.contains('cardobj'),die:el.classList.contains('dieobj'),
+}));
+for(const cs of cardStates)cs.o=objs.find(o=>o.el===cs.el);
+/* 道具在发牌后错峰浮现（骰子除外——它要开场登台） */
+objs.forEach((o,i)=>{
+  if(o.card||o.el.classList.contains('logo')||o.el.classList.contains('dieobj'))return;
+  o.el.style.opacity='0';
+  setTimeout(()=>{o.el.style.opacity='';},3900+i*160);
+});
+let mx=0,my=0,smx=0,smy=0,lastT=performance.now();
+addEventListener('mousemove',e=>{
+  mx=e.clientX/innerWidth*2-1;
+  my=e.clientY/innerHeight*2-1;
+},{passive:true});
+/* 滚轮 = 空间翻滚：单牌各自空翻 + 整个场景大空间前滚翻（带镜头前后穿越），停轮自动滚完整圈回正 */
+let TT=0,TTt=0,ROLL=0,ROLLt=0,wheelTimer=0;
+addEventListener('wheel',e=>{
+  if(sheet.classList.contains('open')||viewer.classList.contains('open'))return;
+  const d=Math.max(-140,Math.min(140,e.deltaY));
+  TTt+=d;
+  ROLLt+=d*0.45; /* 整体前滚翻 */
+  dieKick&&dieKick(d); /* 骰子跟着滚轮加速翻滚 */
+  for(const cs of cardStates){
+    if(cs.dragging)continue;
+    cs.targetX+=d*0.9*cs.kx;
+    cs.target+=d*0.9*cs.ky;
+  }
+  clearTimeout(wheelTimer);
+  wheelTimer=setTimeout(()=>{
+    ROLLt=Math.round(ROLLt/360)*360; /* 场景滚完整圈回正 */
+    for(const cs of cardStates){
+      if(cs.dragging)continue;
+      cs.targetX=Math.round(cs.targetX/180)*180;
+      cs.target=Math.round(cs.target/180)*180;
+    }
+  },380);
+},{passive:true});
+function tick(now){
+  const dt=Math.min(1,Math.max(0.001,(now-lastT)/1000));lastT=now;
+  const km=1-Math.exp(-dt*3.5),kT=1-Math.exp(-dt*3),kRoll=1-Math.exp(-dt*4);
+  smx+=(mx-smx)*km;smy+=(my-smy)*km;
+  TT+=(TTt-TT)*kT;
+  ROLL+=(ROLLt-ROLL)*kRoll;
+  const rx=-smy*8+Math.sin(TT*0.004)*5+ROLL; /* 整体空间前滚翻 */
+  const ry=smx*12+Math.sin(now/9000)*4+Math.sin(TT*0.0025)*8;
+  const rz=Math.sin(now/11000)*3+Math.sin(TT*0.0035)*4;
+  const tz=-170+Math.sin(now/7000)*40+300*Math.sin(ROLL*Math.PI/360); /* 镜头随翻滚前后穿越 */
+  cloud.style.transform=`translateZ(${tz}px) rotateX(${rx}deg) rotateY(${ry}deg) rotateZ(${rz}deg)`;
+  for(const o of objs){
+    o.r+=(o.rT-o.r)*(1-Math.exp(-dt*2));
+    const zOff=o.card?Math.sin(TT*0.010+o.z*0.11)*140:Math.sin(TT*0.006+o.z*0.07)*60;
+    o.el.style.setProperty('--z',o.z+zOff);
+    /* 骰子是体积物，平面自旋交给 billboard + 模型旋转处理 */
+    o.el.style.setProperty('--r',o.die?0:o.r+TT*o.spin*0.012-rz);
+  }
+  /* 卡牌：巡游 + 随机姿态空翻 + 全屏斥力场 + 随机自转爆发 */
+  const kc=1-Math.exp(-dt*7),kFast=1-Math.exp(-dt*5),kSlow=1-Math.exp(-dt*1.5),kr=1-Math.exp(-dt*9),krep=1-Math.exp(-dt*6),tnow=now/1000;
+  const mvx=smx*50,mvy=smy*50; /* 鼠标位置（vw/vh，中心为原点） */
+  for(const cs of cardStates){
+    const kp=now<cs.fast?kFast:kSlow; /* 发牌/自转爆发期间机动更快 */
+    if(!cs.dragging){
+      if(now>cs.nextMove){
+        cs.txp=Math.random()*72-36;cs.typ=Math.random()*54-27;
+        cs.nextMove=now+6500+Math.random()*5500;
+        cs.target+=180;
+        if(Math.random()<0.45)cs.targetX+=180; /* 随机来一个空间前空翻 */
+        cs.poseX=Math.random()*70-35;          /* 落点俯仰随机，不再总是竖立 */
+        cs.o.rT=Math.random()*70-35;           /* 平面倾角也随机 */
+      }
+      if(now>cs.nextSpin){                     /* 随机快速绕轴自转一段 */
+        cs.nextSpin=now+5000+Math.random()*9000;
+        cs.target+=360*(Math.random()<0.5?-1:1);
+        cs.fast=now+1200;
+      }
+      cs.px+=(cs.txp-cs.px)*kp;cs.py+=(cs.typ-cs.py)*kp;
+      cs.cur+=(cs.target-cs.cur)*kc;
+      cs.curX+=((cs.targetX+cs.poseX)-cs.curX)*kc;
+      cs.rx+=(0-cs.rx)*kr;
+    }
+    /* 全屏斥力场：所有牌都被鼠标推动，距离越近推力越大 */
+    let dxm=cs.px-mvx,dym=cs.py-mvy;
+    const d=Math.hypot(dxm,dym)||0.001;
+    const mag=Math.min(20,300/(d+6));
+    const tx=dxm/d*mag,ty=dym/d*mag;
+    if(d<10&&now>cs.spinCd&&!cs.dragging){ /* 被顶得太近：原地快转一圈弹开 */
+      cs.target+=360*(Math.random()<0.5?-1:1);
+      cs.fast=now+1000;cs.spinCd=now+2800;
+    }
+    cs.repX+=(tx-cs.repX)*krep;cs.repY+=(ty-cs.repY)*krep;
+    const lx=Math.sin(tnow*0.5+cs.phase*2.1)*1.6,ly=Math.cos(tnow*0.42+cs.phase*1.7)*1.6;
+    cs.el.style.setProperty('--x',(cs.px+lx+cs.repX).toFixed(2)+'vw');
+    cs.el.style.setProperty('--y',(cs.py+ly+cs.repY).toFixed(2)+'vh');
+    const wob=Math.sin(tnow*1.1+cs.phase)*8+smx*16;
+    const wobX=Math.cos(tnow*0.85+cs.phase)*3-smy*9;
+    cs.inner.style.transform=`rotateX(${(cs.curX+cs.rx+wobX).toFixed(2)}deg) rotateY(${(cs.cur+wob).toFixed(2)}deg)`;
+  }
+  /* dice：全屏物理 + 渲染（传入场景旋转做 billboard 抵消 + 模型跟滚） */
+  drawDie&&drawDie(now,dt,rx,ry,rz);
+  /* props sway */
+  for(const o of objs){
+    if(o.card||o.el.classList.contains('logo'))continue;
+    o.el.style.setProperty('--lx',(Math.sin(tnow*0.4+o.z*0.13)*14).toFixed(1)+'px');
+    o.el.style.setProperty('--ly',(Math.cos(tnow*0.33+o.z*0.17)*12).toFixed(1)+'px');
+  }
+}
+(function loop(now){
+  tick(now??performance.now());
+  requestAnimationFrame(loop);
+})();
+/* rAF 在被遮挡/后台窗口会被暂停 —— 用低频 interval 兜底，保证状态机不冻结 */
+setInterval(()=>{if(performance.now()-lastT>400)tick(performance.now());},330);
+
+/* ---------- drag: props translate, cards spin ---------- */
+for(const {el} of objs){
+  if(el.classList.contains('logo')||el.classList.contains('cardobj'))continue;
+  let sx,sy,bx,by,moved;
+  el.addEventListener('pointerdown',e=>{
+    el.setPointerCapture(e.pointerId);
+    sx=e.clientX;sy=e.clientY;moved=false;
+    bx=parseFloat(el.style.getPropertyValue('--dx'))||0;
+    by=parseFloat(el.style.getPropertyValue('--dy'))||0;
+    const move=ev=>{
+      if(Math.hypot(ev.clientX-sx,ev.clientY-sy)>6)moved=true;
+      el.style.setProperty('--dx',bx+(ev.clientX-sx)+'px');
+      el.style.setProperty('--dy',by+(ev.clientY-sy)+'px');
+    };
+    const up=()=>{el.removeEventListener('pointermove',move);el.removeEventListener('pointerup',up);};
+    el.addEventListener('pointermove',move);
+    el.addEventListener('pointerup',up);
+  });
+}
+/* 卡牌：横向拖 = 旋转（带惯性甩动，松手吸附正/反面）；纵向拖 = 俯仰倾斜回弹；点击 = 打开当前朝向的项目 */
+for(const cs of cardStates){
+  cs.el.addEventListener('pointerdown',e=>{
+    cs.el.setPointerCapture(e.pointerId);
+    const sx=e.clientX,sy=e.clientY,base=cs.cur;
+    let moved=false,lastX=e.clientX,lastT=performance.now(),vel=0;
+    cs.dragging=true;cs.el.classList.add('dragging');
+    const move=ev=>{
+      const dx=ev.clientX-sx,dy=ev.clientY-sy;
+      if(Math.hypot(dx,dy)>6)moved=true;
+      cs.cur=base+dx*0.6;cs.target=cs.cur;
+      cs.rx=Math.max(-26,Math.min(26,-dy*0.25));
+      const nt=performance.now();
+      vel=(ev.clientX-lastX)/Math.max(1,nt-lastT)*16;
+      lastX=ev.clientX;lastT=nt;
+    };
+    const up=()=>{
+      cs.el.removeEventListener('pointermove',move);cs.el.removeEventListener('pointerup',up);
+      cs.dragging=false;cs.el.classList.remove('dragging');
+      cs.txp=cs.px;cs.typ=cs.py;cs.nextMove=performance.now()+5200; /* 停留片刻再巡游 */
+      if(!moved){openProject(visibleFace(cs));return;}
+      cs.target=Math.round((cs.cur+vel*14)/180)*180; /* 惯性 + 吸附 */
+      cs.targetX=Math.round(cs.targetX/180)*180;cs.poseX=0; /* 俯仰摆正 */
+    };
+    cs.el.addEventListener('pointermove',move);
+    cs.el.addEventListener('pointerup',up);
+  });
+}
+
+/* ---------- shuffle：全体立刻起飞换位 + 翻面 ---------- */
+document.getElementById('shuffleStick').addEventListener('click',()=>{
+  for(const o of objs){
+    if(o.card||o.el.classList.contains('logo')||o.el.classList.contains('far'))continue;
+    o.el.style.setProperty('--x',(Math.random()*76-38).toFixed(1)+'vw');
+    o.el.style.setProperty('--y',(Math.random()*56-28).toFixed(1)+'vh');
+    o.rT=Math.random()*28-14;
+    o.el.style.setProperty('--dx','0px');
+    o.el.style.setProperty('--dy','0px');
+  }
+  for(const cs of cardStates){if(!cs.dragging)cs.nextMove=0;}
+  ROLLt+=360; /* 洗牌时整个场景翻滚一整圈 */
+  dieToss&&dieToss(); /* 三颗骰子重掷一把 */
+});
+</script>
+</body>
+</html>
